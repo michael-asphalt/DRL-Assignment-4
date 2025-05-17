@@ -62,8 +62,14 @@ class Agent(object):
         self.actor.eval()
 
     def act(self, observation):
-        print("observation shape: ", observation.shape, flush=True)
+        # print("observation shape: ", observation.shape, flush=True)
+        if isinstance(observation, dict):
+            obs = np.concatenate([v.flatten() for v in observation.values()])
+        else:
+            obs = observation
         with torch.no_grad():
-            x = torch.tensor(observation, dtype=torch.float64, device=self.device).unsqueeze(0)
+            x = torch.tensor(obs,
+                            dtype=torch.float64,
+                            device=self.device).unsqueeze(0)
             a, _ = self.actor(x, deterministic=True)
         return a.cpu().numpy()[0]
