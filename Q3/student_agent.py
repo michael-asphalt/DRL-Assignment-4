@@ -59,7 +59,7 @@ class Agent(object):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.actor = Pi_FC(obs_size, action_dim).to(self.device)
         ckpt_path = "../sac_2250.ckpt"
-        ckpt = torch.load(ckpt_path, map_location=self.device)
+        ckpt = torch.load(ckpt_path, map_location=self.device, weights_only=True)
         self.actor.load_state_dict(ckpt['actor'])
         self.actor.eval()
 
