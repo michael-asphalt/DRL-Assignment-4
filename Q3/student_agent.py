@@ -62,6 +62,7 @@ class Agent(object):
         self.actor.eval()
 
     def act(self, observation):
+        print("observation shape: ", observation.shape, flush=True)
         with torch.no_grad():
             x = torch.tensor(observation, dtype=torch.float64, device=self.device).unsqueeze(0)
             a, _ = self.actor(x)  
