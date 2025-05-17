@@ -63,7 +63,8 @@ class Agent(object):
 
     def act(self, observation):
         # signature unchanged
+        def act(self, observation):
         with torch.no_grad():
             x = torch.tensor(observation, dtype=torch.float64, device=self.device).unsqueeze(0)
-            a, _ = self.actor(x, deterministic=True)
+            a, _ = self.actor(x)  
         return a.cpu().numpy()[0]
