@@ -30,7 +30,7 @@ jobs:
     - name: 3. Downloading model 
       run: | 
         pip install gdown
-        gdown https://drive.google.com/uc?id=1KPJN3QrBrKVj-ngkom4V8lo2z_cn1omg
+        gdown https://drive.google.com/uc?id=1yKxFKJIrN-NsVQmAGPETChE71Xf7Lvfd
 
     - name: 4. Run Evaluation
       run: |

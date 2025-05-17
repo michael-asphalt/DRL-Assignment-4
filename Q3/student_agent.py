@@ -5,6 +5,14 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.distributions.normal import Normal
 from dm_control import suite
+import math
+from dmc import make_dmc_env
+
+def make_env():
+     # Create environment with state observations
+     env_name = "humanoid-walk"
+     env = make_dmc_env(env_name, np.random.randint(0, 1000000), flatten=True, use_pixels=False)
+     return env
 
 # Actor network definition (must match training)
 class Pi_FC(nn.Module):
@@ -37,40 +45,27 @@ class Pi_FC(nn.Module):
             lp = None
         return torch.tanh(z), lp
 
-def process_observation(observation):
-    obs = np.concatenate([
-        (v.flatten() if hasattr(v, "flatten") else np.array([v]))
-        for v in observation.values()
-    ])
-    return obs
-
 class Agent(object):
     """Loads only the SAC actor’s weights and returns deterministic actions."""
     def __init__(self):
-        # signature unchanged
-        self.action_space = gym.spaces.Box(-1.0, 1.0, (21,), np.float64)
-
         # rebuild env spec to infer dims
-        domain, task, seed = "humanoid", "walk", 0
-        env = suite.load(domain_name=domain, task_name=task, task_kwargs={'random': seed})
-        obs_spec = env.observation_spec()
-        act_spec = env.action_spec()
-        obs_size   = int(sum(np.prod(obs_spec[k].shape) for k in obs_spec))
-        action_dim = int(np.prod(act_spec.shape))
+        self.env = make_env()
+        # infer sizes from gym spaces
+        self.obs_size = math.prod(self.env.observation_space.shape)
+        self.action_size = math.prod(self.env.action_space.shape)
 
         # build actor
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.actor  = Pi_FC(obs_size, action_dim).to(self.device).double()
+        self.actor  = Pi_FC(self.obs_size, self.action_size).to(self.device).double()
 
         # --- load the actor-only weights ---
-        actor_ckpt = "../sac_actor_2250.pth"
+        actor_ckpt = "../sac_actor_2_500.pth"
         state_dict = torch.load(actor_ckpt, map_location=self.device)
         self.actor.load_state_dict(state_dict)
         self.actor.eval()
 
     def act(self, observation):
         # print("observation shape: ", observation.shape, flush=True)
-        obs = process_observation(observation)
         with torch.no_grad():
             x = torch.tensor(observation,
                             dtype=torch.float64,
