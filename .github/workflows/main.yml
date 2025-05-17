@@ -27,7 +27,12 @@ jobs:
       run: |
         pip install -r requirements.txt
 
-    - name: 3. Run Evaluation
+    - name: 3. Downloading model 
+      run: | 
+        pip install gdown
+        gdown https://drive.google.com/uc?id=1PhGjKdlX0I7jcWCNjQc8xznJKCg-YE5O
+
+    - name: 4. Run Evaluation
       run: |
         cd Q3/
         chmod +x eval.cpython-310-x86_64-linux-gnu.so
