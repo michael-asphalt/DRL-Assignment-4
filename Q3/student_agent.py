@@ -53,7 +53,7 @@ class Agent(object):
 
         # build actor
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.actor  = Pi_FC(obs_size, action_dim).to(self.device)
+        self.actor  = Pi_FC(obs_size, action_dim).to(self.device).double()
 
         # --- load the actor-only weights ---
         actor_ckpt = "../sac_actor_2250.pth"
