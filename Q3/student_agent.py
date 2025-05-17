@@ -52,6 +52,8 @@ class Agent(object):
         act_spec = env.action_spec()
         obs_size   = sum(np.prod(obs_spec[k].shape) for k in obs_spec)
         action_dim = np.prod(act_spec.shape)
+        obs_size   = int(obs_size)
+        action_dim = int(action_dim)
 
         # load actor
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
