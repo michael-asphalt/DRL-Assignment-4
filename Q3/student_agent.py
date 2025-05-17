@@ -65,5 +65,5 @@ class Agent(object):
         print("observation shape: ", observation.shape, flush=True)
         with torch.no_grad():
             x = torch.tensor(observation, dtype=torch.float64, device=self.device).unsqueeze(0)
-            a, _ = self.actor(x)  
+            a, _ = self.actor(x, deterministic=True)
         return a.cpu().numpy()[0]
