@@ -37,6 +37,18 @@ class Pi_FC(nn.Module):
             lp = None
         return torch.tanh(z), lp
 
+import numpy as np
+
+def transform_observation(obs):
+    ret = np.array([])
+    for k in obs:
+        if obs[k].shape:
+            ret = np.concatenate((ret, obs[k].flatten()))
+        else :
+            ret = np.concatenate((ret, np.array([obs[k]])))
+    return ret
+
+
 class Agent(object):
     """Loads only the SAC actor’s weights and returns deterministic actions."""
     def __init__(self):
@@ -63,10 +75,7 @@ class Agent(object):
 
     def act(self, observation):
         # print("observation shape: ", observation.shape, flush=True)
-        if isinstance(observation, dict):
-            obs = np.concatenate([v.flatten() for v in observation.values()])
-        else:
-            obs = observation
+        obs = transform_observation(observation)
         with torch.no_grad():
             x = torch.tensor(obs,
                             dtype=torch.float64,
