@@ -58,11 +58,10 @@ class Agent(object):
         # --- load the actor-only weights ---
         actor_ckpt = "../sac_actor_2250.pth"
         state_dict = torch.load(actor_ckpt, map_location=self.device)
-        self.actor.load_state_dict(state_dict["actor"])
+        self.actor.load_state_dict(state_dict)
         self.actor.eval()
 
     def act(self, observation):
-        # signature unchanged
         with torch.no_grad():
             x = torch.tensor(observation, dtype=torch.float64, device=self.device).unsqueeze(0)
             a, _ = self.actor(x)  
