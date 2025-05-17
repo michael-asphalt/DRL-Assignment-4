@@ -38,39 +38,31 @@ class Pi_FC(nn.Module):
         return torch.tanh(z), lp
 
 class Agent(object):
-    """Loads a trained SAC actor and returns deterministic actions."""
+    """Loads only the SAC actor’s weights and returns deterministic actions."""
     def __init__(self):
-        # (1) Declare a stub so the unpickler can find ReplayBuffer
-        class ReplayBuffer:
-            def __init__(self, *args, **kwargs):
-                pass
-        # (2) Register it as a “safe global” for torch.load
-        import torch.serialization as _ser
-        _ser.add_safe_globals([ReplayBuffer])
-        # keep signature unchanged
+        # signature unchanged
         self.action_space = gym.spaces.Box(-1.0, 1.0, (21,), np.float64)
 
-        # hardcode your environment settings
+        # rebuild env spec to infer dims
         domain, task, seed = "humanoid", "walk", 0
         env = suite.load(domain_name=domain, task_name=task, task_kwargs={'random': seed})
-
-        # infer dims
         obs_spec = env.observation_spec()
         act_spec = env.action_spec()
-        obs_size   = sum(np.prod(obs_spec[k].shape) for k in obs_spec)
-        action_dim = np.prod(act_spec.shape)
-        obs_size   = int(obs_size)
-        action_dim = int(action_dim)
+        obs_size   = int(sum(np.prod(obs_spec[k].shape) for k in obs_spec))
+        action_dim = int(np.prod(act_spec.shape))
 
-        # load actor
+        # build actor
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.actor = Pi_FC(obs_size, action_dim).to(self.device)
-        ckpt_path = "../sac_2250.ckpt"
-        ckpt = torch.load(ckpt_path, map_location=self.device, weights_only=False)
-        self.actor.load_state_dict(ckpt['actor'])
+        self.actor  = Pi_FC(obs_size, action_dim).to(self.device)
+
+        # --- load the actor-only weights ---
+        actor_ckpt = "../sac_actor_2250.pth"
+        state_dict = torch.load(actor_ckpt, map_location=self.device)
+        self.actor.load_state_dict(state_dict)
         self.actor.eval()
 
     def act(self, observation):
+        # signature unchanged
         with torch.no_grad():
             x = torch.tensor(observation, dtype=torch.float64, device=self.device).unsqueeze(0)
             a, _ = self.actor(x, deterministic=True)
