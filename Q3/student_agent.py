@@ -40,6 +40,13 @@ class Pi_FC(nn.Module):
 class Agent(object):
     """Loads a trained SAC actor and returns deterministic actions."""
     def __init__(self):
+        # (1) Declare a stub so the unpickler can find ReplayBuffer
+        class ReplayBuffer:
+            def __init__(self, *args, **kwargs):
+                pass
+        # (2) Register it as a “safe global” for torch.load
+        import torch.serialization as _ser
+        _ser.add_safe_globals([ReplayBuffer])
         # keep signature unchanged
         self.action_space = gym.spaces.Box(-1.0, 1.0, (21,), np.float64)
 
