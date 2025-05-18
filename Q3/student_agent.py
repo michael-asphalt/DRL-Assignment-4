@@ -22,7 +22,7 @@ class Pi_FC(nn.Module):
             nn.Linear(obs_size, 256),
             nn.Linear(256, 256),
         ])
-        self.mu_head      = nn.Linear(256, action_size)
+        self.mu_head  = nn.Linear(256, action_size)
         self.log_std_head = nn.Linear(256, action_size)
         self.log_std_min, self.log_std_max = -20.0, 2.0
 
@@ -33,14 +33,14 @@ class Pi_FC(nn.Module):
         mu = self.mu_head(h)
         if deterministic:
             return torch.tanh(mu), None
-        ls   = self.log_std_head(h).clamp(self.log_std_min, self.log_std_max)
+        ls = self.log_std_head(h).clamp(self.log_std_min, self.log_std_max)
         std  = torch.exp(ls)
         dist = Normal(mu, std)
-        z    = dist.rsample()
+        z  = dist.rsample()
         if with_logprob:
-            lp   = dist.log_prob(z).sum(dim=-1)
+            lp = dist.log_prob(z).sum(dim=-1)
             corr = (2 * (np.log(2) - z - F.softplus(-2*z))).sum(dim=-1)
-            lp   = lp - corr
+            lp = lp - corr
         else:
             lp = None
         return torch.tanh(z), lp
@@ -48,9 +48,7 @@ class Pi_FC(nn.Module):
 class Agent(object):
     """Loads only the SAC actor’s weights and returns deterministic actions."""
     def __init__(self):
-        # rebuild env spec to infer dims
         self.env = make_env()
-        # infer sizes from gym spaces
         self.obs_size = math.prod(self.env.observation_space.shape)
         self.action_size = math.prod(self.env.action_space.shape)
 
@@ -59,7 +57,7 @@ class Agent(object):
         self.actor  = Pi_FC(self.obs_size, self.action_size).to(self.device).double()
 
         # --- load the actor-only weights ---
-        actor_ckpt = "../sac_actor_2_500.pth"
+        actor_ckpt = "../sac_actor_2_1500.pth"
         state_dict = torch.load(actor_ckpt, map_location=self.device)
         self.actor.load_state_dict(state_dict)
         self.actor.eval()
@@ -67,8 +65,6 @@ class Agent(object):
     def act(self, observation):
         # print("observation shape: ", observation.shape, flush=True)
         with torch.no_grad():
-            x = torch.tensor(observation,
-                            dtype=torch.float64,
-                            device=self.device).unsqueeze(0)
+            x = torch.tensor(observation, dtype=torch.float64, device=self.device).unsqueeze(0)
             a, _ = self.actor(x, deterministic=True)
         return a.cpu().numpy()[0]
