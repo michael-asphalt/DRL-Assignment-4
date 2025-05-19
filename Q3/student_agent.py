@@ -14,7 +14,6 @@ def make_env():
      env = make_dmc_env(env_name, np.random.randint(0, 1000000), flatten=True, use_pixels=False)
      return env
 
-# Actor network definition (must match training)
 class Pi_FC(nn.Module):
     def __init__(self, obs_size, action_size):
         super(Pi_FC, self).__init__()
@@ -46,7 +45,6 @@ class Pi_FC(nn.Module):
         return torch.tanh(z), lp
 
 class Agent(object):
-    """Loads only the SAC actor’s weights and returns deterministic actions."""
     def __init__(self):
         self.env = make_env()
         self.obs_size = math.prod(self.env.observation_space.shape)
@@ -57,7 +55,7 @@ class Agent(object):
         self.actor  = Pi_FC(self.obs_size, self.action_size).to(self.device).double()
 
         # --- load the actor-only weights ---
-        actor_ckpt = "../sac_actor_2_1500.pth"
+        actor_ckpt = "../sac_actor_2_3500.pth"
         state_dict = torch.load(actor_ckpt, map_location=self.device)
         self.actor.load_state_dict(state_dict)
         self.actor.eval()
